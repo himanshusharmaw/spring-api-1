@@ -1,0 +1,7 @@
+url: postgresql://aadhaar_services_user:qbXtBpSFF1QhK9clji5zu0ZR3wv5atfc@dpg-d076v5qli9vc73f1antg-a.singapore-postgres.render.com/aadhaar_services
+
+username: aadhaar_services_user
+pass: qbXtBpSFF1QhK9clji5zu0ZR3wv5atfc
+
+connection: psql -h dpg-d076v5qli9vc73f1antg-a.singapore-postgres.render.com -U aadhaar_services_user -d aadhaar_services -W
+pass: qbXtBpSFF1QhK9clji5zu0ZR3wv5atfc

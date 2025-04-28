@@ -1,7 +1,6 @@
+
 package com.aadhaarservices.aadhaar_services.config;
 
-import com.aadhaarservices.aadhaar_services.config.JwtAuthFilter;
-import com.aadhaarservices.aadhaar_services.config.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,19 +30,11 @@ public class SecurityConfig {
     @Autowired
     private CorsConfig corsConfig;
 
-    /**
-     * Password encoder bean used for both hashing at registration
-     * and verifying at login.
-     */
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Registers a DAO-based AuthenticationProvider that uses
-     * our CustomUserDetailsService + BCryptPasswordEncoder.
-     */
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -52,49 +43,31 @@ public class SecurityConfig {
         return provider;
     }
 
-    /**
-     * Expose the AuthenticationManager from AuthenticationConfiguration.
-     */
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config
-    ) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * Configures the HTTP security for JWT-based stateless auth:
-     * - disables CSRF
-     * - applies CORS settings
-     * - permits login endpoints
-     * - secures the user profile endpoint
-     * - registers our DaoAuthenticationProvider
-     * - adds the JWT filter
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         JwtAuthFilter jwtAuthFilter = new JwtAuthFilter(jwtUtils, userDetailsService);
 
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
+            .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource())) // ✅ correct
             .authorizeHttpRequests(auth -> auth
-                // Allow unauthenticated access to login endpoints
                 .requestMatchers("/login", "/api/admin/login").permitAll()
-                // Protect the profile endpoint
                 .requestMatchers("/api/user/profile").authenticated()
-                // Everything else is open (adjust as needed)
                 .anyRequest().permitAll()
             )
-            // Register our AuthenticationProvider so AuthenticationManager can use it
             .authenticationProvider(authenticationProvider())
             .sessionManagement(session -> 
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             );
 
-        // Add the JWT filter before Spring's username/password filter
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 }

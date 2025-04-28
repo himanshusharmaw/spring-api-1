@@ -1,5 +1,7 @@
 package com.aadhaarservices.aadhaar_services.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -14,7 +16,10 @@ public class CorsConfig {
     @Bean(name = "customCorsConfigurationSource")
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("*"));
+        config.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000", 
+            "https://aadhaar-dashboard-portal.netlify.app" // Add your Netlify URL here
+        ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);
@@ -23,4 +28,5 @@ public class CorsConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+
 }

@@ -5,3 +5,9 @@ pass: qbXtBpSFF1QhK9clji5zu0ZR3wv5atfc
 
 connection: psql -h dpg-d076v5qli9vc73f1antg-a.singapore-postgres.render.com -U aadhaar_services_user -d aadhaar_services -W
 pass: qbXtBpSFF1QhK9clji5zu0ZR3wv5atfc
+
+
+api ip:
+13.228.225.19
+18.142.128.26
+54.254.162.138

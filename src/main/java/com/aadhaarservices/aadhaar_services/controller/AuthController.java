@@ -32,6 +32,11 @@ public class AuthController {
 
     @Autowired
     private JwtUtils jwtUtils;
+    
+    @GetMapping("/ping")
+    public ResponseEntity<String> keepAlive() {
+        return ResponseEntity.ok("Server is alive");
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody User user) {

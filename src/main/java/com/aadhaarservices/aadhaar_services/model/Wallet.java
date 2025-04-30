@@ -2,6 +2,8 @@ package com.aadhaarservices.aadhaar_services.model;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -15,6 +17,7 @@ public class Wallet {
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")  // Join with the User entity by ID
+    @JsonBackReference
     private User user;
 
     // ---------------- Constructors ----------------

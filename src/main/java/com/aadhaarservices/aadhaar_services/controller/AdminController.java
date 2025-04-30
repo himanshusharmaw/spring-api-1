@@ -14,8 +14,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -25,9 +28,9 @@ public class AdminController {
     private final WalletRepository walletRepository;
     private final PaymentDetailsRepository paymentDetailsRepository;
     private final PasswordEncoder passwordEncoder;
+    
     @Autowired
     private JwtUtils jwtUtil;
-
 
     private static final String ADMIN_SECRET_KEY = "ADMIN_SECRET_123";
 
@@ -43,25 +46,21 @@ public class AdminController {
     @PostMapping("/login")
     public ResponseEntity<?> adminLogin(@RequestBody AdminLoginRequest loginRequest) {
         if (!ADMIN_SECRET_KEY.equals(loginRequest.getSecretKey())) {
-            return ResponseEntity.status(403)
-                    .body(Map.of("error", "Invalid secret key"));
+            return ResponseEntity.status(403).body(Map.of("error", "Invalid secret key"));
         }
 
-        User admin = userRepository.findByUsername(loginRequest.getUsername())
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
+        Optional<User> adminOpt = userRepository.findByUsername(loginRequest.getUsername());
+        if (adminOpt.isEmpty()) {
+            return ResponseEntity.status(403).body(Map.of("error", "Admin not found"));
+        }
 
+        User admin = adminOpt.get();
         if (!passwordEncoder.matches(loginRequest.getPassword(), admin.getPassword())) {
-            return ResponseEntity.status(403)
-                    .body(Map.of("error", "Invalid credentials"));
+            return ResponseEntity.status(403).body(Map.of("error", "Invalid credentials"));
         }
 
         String token = jwtUtil.generateToken(admin);
-
-        return ResponseEntity.ok(Map.of(
-                "token", token,
-                "username", admin.getUsername(),
-                "role", "ADMIN"
-        ));
+        return ResponseEntity.ok(Map.of("token", token, "username", admin.getUsername(), "role", "ADMIN"));
     }
 
     // Create new user with wallet
@@ -83,51 +82,77 @@ public class AdminController {
     // Update user Aadhaar profile details
     @PutMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> updatedData) {
         User user = userRepository.findById(id).orElseThrow();
-        user.setFullName(updatedUser.getFullName());
-        user.setAadhaarNumber(updatedUser.getAadhaarNumber());
-        user.setProfilePhoto(updatedUser.getProfilePhoto());  // Allow updating of profile photo
-        userRepository.save(user);
-        return ResponseEntity.ok(user);
-    }
+        Wallet wallet = walletRepository.findByUserId(id).orElseThrow();
 
+        // Update user fields
+        user.setUsername((String) updatedData.get("username"));
+        user.setFullName((String) updatedData.get("fullName"));
+        user.setAadhaarNumber((String) updatedData.get("aadhaarNumber"));
+        user.setPhone((String) updatedData.get("mobileNumber"));
+        user.setEmail((String) updatedData.get("email"));
+        user.setProfilePhoto((String) updatedData.get("profilePhoto"));
+        user.setAddress((String) updatedData.get("address"));  // Update address
+        user.setTwoFA(updatedData.get("twoFA") != null ? (Boolean) updatedData.get("twoFA") : false); // Update twoFA status
+        user.setAadhaarVerified((Boolean) updatedData.get("aadhaarVerified")); // Update aadhaarVerified
+
+        // Parse wallet balance if present
+        Object balanceObj = updatedData.get("walletBalance");
+        if (balanceObj instanceof Number) {
+            wallet.setBalance(new BigDecimal(((Number) balanceObj).doubleValue()));
+        } else if (balanceObj instanceof String) {
+            wallet.setBalance(new BigDecimal((String) balanceObj));
+        }   
+
+        // Save updated user and wallet
+        userRepository.save(user);
+        walletRepository.save(wallet);
+
+        return ResponseEntity.ok("User and wallet updated successfully");
+    }
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userRepository.findAll());
+    public ResponseEntity<List<Map<String, Object>>> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        List<Map<String, Object>> simplifiedUsers = users.stream().map(user -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", user.getId());
+            map.put("username", user.getUsername());
+            return map;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(simplifiedUsers);
     }
 
     @GetMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        User user = userRepository.findById(id).orElseThrow();
-        return ResponseEntity.ok(user);
+    public ResponseEntity<Map<String, Object>> getUserWithWallet(@PathVariable Long id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "User not found"));
+        }
+
+        Optional<Wallet> walletOpt = walletRepository.findByUserId(id);
+        if (walletOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "Wallet not found"));
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("user", userOpt.get());
+        response.put("wallet", walletOpt.get());
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
-        userRepository.deleteById(id);	
+        if (!userRepository.existsById(id)) {
+            return ResponseEntity.status(404).body("User not found");
+        }
+        userRepository.deleteById(id);
         return ResponseEntity.ok("User deleted");
-    }
-
-    // Get wallet details of a user by userId
-    @GetMapping("/wallet/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Wallet> getWalletDetails(@PathVariable Long userId) {
-        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
-        return ResponseEntity.ok(wallet);
-    }
-
-    // Update wallet balance for a user by userId
-    @PutMapping("/wallet/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> updateWalletBalance(@PathVariable Long userId, @RequestBody BigDecimal amount) {
-        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow();
-        wallet.setBalance(wallet.getBalance().add(amount)); // Adding the amount to the balance
-        walletRepository.save(wallet);
-        return ResponseEntity.ok("Wallet balance updated");
     }
 
     // Create a new payment for a user
@@ -137,7 +162,12 @@ public class AdminController {
         paymentDetailsRepository.save(paymentDetails);
 
         // Update user's wallet balance based on the payment amount
-        Wallet wallet = walletRepository.findByUserId(paymentDetails.getUser().getId()).orElseThrow();
+        Optional<Wallet> walletOpt = walletRepository.findByUserId(paymentDetails.getUser().getId());
+        if (walletOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("Wallet not found for the user");
+        }
+        
+        Wallet wallet = walletOpt.get();
         wallet.setBalance(wallet.getBalance().add(paymentDetails.getAmount()));  // Add payment to balance
         walletRepository.save(wallet);
 
@@ -155,7 +185,12 @@ public class AdminController {
     @PutMapping("/payments/{paymentId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> updatePaymentStatus(@PathVariable Long paymentId, @RequestBody String status) {
-        PaymentDetails payment = paymentDetailsRepository.findById(paymentId).orElseThrow();
+        Optional<PaymentDetails> paymentOpt = paymentDetailsRepository.findById(paymentId);
+        if (paymentOpt.isEmpty()) {
+            return ResponseEntity.status(404).body("Payment not found");
+        }
+
+        PaymentDetails payment = paymentOpt.get();
         payment.setStatus(status);
         paymentDetailsRepository.save(payment);
         return ResponseEntity.ok("Payment status updated");
@@ -176,4 +211,4 @@ public class AdminController {
         public String getSecretKey() { return secretKey; }
         public void setSecretKey(String secretKey) { this.secretKey = secretKey; }
     }
-}
+}	

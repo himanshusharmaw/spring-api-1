@@ -1,14 +1,14 @@
-# Use a lightweight OpenJDK image
-FROM openjdk:17-jdk-slim
+# Use a supported JDK base image
+FROM eclipse-temurin:17-jdk-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Copy your jar file into the container
+# Copy built jar
 COPY target/*.jar app.jar
 
-# Expose port (use your Spring Boot port, usually 8080)
+# Expose port
 EXPOSE 8082
 
-# Run the application
+# Run
 ENTRYPOINT ["java", "-jar", "app.jar"]

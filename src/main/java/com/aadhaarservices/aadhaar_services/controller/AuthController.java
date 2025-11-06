@@ -35,6 +35,7 @@ public class AuthController {
     
     @GetMapping("/ping")
     public ResponseEntity<String> keepAlive() {
+    	System.out.println("alive");
         return ResponseEntity.ok("Server is alive");
     }
 

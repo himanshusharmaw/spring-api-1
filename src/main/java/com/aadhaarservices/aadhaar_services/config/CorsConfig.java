@@ -18,7 +18,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000", 
-            "https://aadhaar-dashboard-portal.netlify.app" // Add your Netlify URL here
+            "https://aadhaar-dashboard.netlify.app" // Add your Netlify URL here
         ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         config.setAllowedHeaders(Arrays.asList("*"));

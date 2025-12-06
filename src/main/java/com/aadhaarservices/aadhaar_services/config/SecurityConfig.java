@@ -1,4 +1,3 @@
-
 package com.aadhaarservices.aadhaar_services.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,14 +53,15 @@ public class SecurityConfig {
 
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource())) // ✅ correct
+            .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/api/admin/login").permitAll()
+                .requestMatchers("/api/user/upload-photo").authenticated()
                 .requestMatchers("/api/user/profile").authenticated()
                 .anyRequest().permitAll()
             )
             .authenticationProvider(authenticationProvider())
-            .sessionManagement(session -> 
+            .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             );
 
@@ -69,5 +69,4 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 }

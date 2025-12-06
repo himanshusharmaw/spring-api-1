@@ -16,23 +16,34 @@ public class WalletService {
     private WalletRepository walletRepository;
 
     @Transactional
-    public void addFunds(User user, BigDecimal amount) {
+    public Wallet addFunds(User user, BigDecimal amount) {
+
         Wallet wallet = user.getWallet();
+
         wallet.setBalance(wallet.getBalance().add(amount));
-        walletRepository.save(wallet);
+
+        // automatically activate wallet on first transaction
+        if (wallet.getStatus() == null || wallet.getStatus().equals("INACTIVE")) {
+            wallet.setStatus("ACTIVE");
+        }
+
+        return walletRepository.save(wallet);
     }
+
     @Transactional
-    public void deductFunds(User user, BigDecimal amount) {
+    public Wallet deductFunds(User user, BigDecimal amount) {
+
         Wallet wallet = walletRepository.findByUserId(user.getId())
-            .orElseThrow(() -> new IllegalArgumentException("Wallet not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Wallet not found"));
 
         BigDecimal current = wallet.getBalance();
+
         if (current.compareTo(amount) < 0) {
-            throw new IllegalArgumentException(
-                "Current balance (" + current + ") is less than requested amount (" + amount + ")"
-            );
+            throw new IllegalArgumentException("Insufficient balance");
         }
+
         wallet.setBalance(current.subtract(amount));
-        walletRepository.save(wallet);
+
+        return walletRepository.save(wallet);
     }
 }

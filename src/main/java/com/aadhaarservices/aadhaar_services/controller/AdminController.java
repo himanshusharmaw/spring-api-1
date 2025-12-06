@@ -66,18 +66,41 @@ public class AdminController {
     // Create new user with wallet
     @PostMapping("/users/create")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> createUser(@RequestBody User user) {
-        // Create the user and encode password
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+
+        // Validate duplicate username
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            return ResponseEntity.badRequest().body("Username already exists");
+        }
+
+        // Aadhaar validation
+        if (user.getAadhaarNumber() != null && user.getAadhaarNumber().length() != 12) {
+            return ResponseEntity.badRequest().body("Invalid Aadhaar number");
+        }
+
+        // Default values
+        user.setRole("USER");
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
+        user.setRegistrationDate(String.valueOf(java.time.LocalDate.now()));
+        user.setAccountLocked(false);
+        user.setTwoFA(false);
+        user.setAadhaarVerified(false);
+        user.setEmailVerified(false);
+        user.setMobileVerified(false);
+        user.setAadhaarLinked(false);
 
-        // Create an empty wallet for the user and associate it
+        // Save user
+        User savedUser = userRepository.save(user);
+
+        // Create wallet
         Wallet wallet = new Wallet();
-        wallet.setUser(user);  // Associate wallet with user
-        walletRepository.save(wallet); // Save wallet
+        wallet.setUser(savedUser);
+        wallet.setBalance(BigDecimal.ZERO);
+        walletRepository.save(wallet);
 
-        return ResponseEntity.ok("User and wallet created successfully");
+        return ResponseEntity.ok("User created successfully");
     }
+
 
     // Update user Aadhaar profile details
     @PutMapping("/users/{id}")
@@ -111,19 +134,31 @@ public class AdminController {
 
         return ResponseEntity.ok("User and wallet updated successfully");
     }
+    
+    
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Map<String, Object>>> getAllUsers() {
         List<User> users = userRepository.findAll();
-        List<Map<String, Object>> simplifiedUsers = users.stream().map(user -> {
+
+        List<Map<String, Object>> userData = users.stream().map(user -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", user.getId());
             map.put("username", user.getUsername());
+            map.put("fullName", user.getFullName());
+            map.put("aadhaarNumber", user.getAadhaarNumber());
+            map.put("accountLocked", user.getAccountLocked());
+            map.put("aadhaarVerified", user.isAadhaarVerified());
+            map.put("panVerified", user.getPanVerified());
+            map.put("wallet", user.getWallet() != null ? Map.of(
+                    "balance", user.getWallet().getBalance()
+            ) : Map.of("balance", 0));
             return map;
         }).collect(Collectors.toList());
 
-        return ResponseEntity.ok(simplifiedUsers);
+        return ResponseEntity.ok(userData);
     }
+
 
     @GetMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")

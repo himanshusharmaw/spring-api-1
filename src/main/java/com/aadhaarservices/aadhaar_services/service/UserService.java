@@ -8,9 +8,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.*;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Service
@@ -23,54 +24,69 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    // Get User profile by username
+    // -------------------- GET PROFILE BY USERNAME --------------------
     public User getUserProfile(String username) {
-        Optional<User> optionalUser = userRepository.findByUsername(username);
-        if (optionalUser.isEmpty()) {
-            throw new UsernameNotFoundException("User not found: " + username);
-        }
-        return optionalUser.get();
+        return userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("User not found: " + username));
     }
 
-    // Upload User profile photo
+    // -------------------- UPLOAD PROFILE PHOTO --------------------
     public String uploadProfilePhoto(User user, MultipartFile file) throws IOException {
-        String uploadDir = "uploads/";
-        Files.createDirectories(Paths.get(uploadDir));
 
-        String fileName = user.getId() + "_" + file.getOriginalFilename();
-        Path filePath = Paths.get(uploadDir + fileName);
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        String uploadDir = "uploads/profile-photos/";
 
-        user.setProfilePhoto("/uploads/" + fileName);  // Path relative to public folder
+        File dir = new File(uploadDir);
+        if (!dir.exists()) dir.mkdirs();
+
+        String filename = user.getUsername() + "_" + file.getOriginalFilename();
+        String fullPath = uploadDir + filename;
+
+        FileOutputStream fos = new FileOutputStream(fullPath);
+        fos.write(file.getBytes());
+        fos.close();
+
+        user.setProfilePhoto(fullPath);
         userRepository.save(user);
 
-        return "/uploads/" + fileName; // Return file path
+        return fullPath;
     }
 
-    // Update User profile information (for updating details like name, phone, etc.)
+    // -------------------- UPDATE PROFILE --------------------
     public User updateUserProfile(UserDetails userDetails, User updatedUser) {
-        User user = getUserProfile(userDetails.getUsername()); // Fetch existing user by username
 
-        // Update user fields
+        User user = getUserProfile(userDetails.getUsername());
+
+        // Basic fields
         user.setFullName(updatedUser.getFullName());
         user.setAadhaarNumber(updatedUser.getAadhaarNumber());
         user.setEmail(updatedUser.getEmail());
         user.setPhone(updatedUser.getPhone());
         user.setAddress(updatedUser.getAddress());
+
+        // New fields
         user.setTwoFA(updatedUser.isTwoFA());
         user.setAadhaarVerified(updatedUser.isAadhaarVerified());
-        user.setPanVerified(updatedUser.isPanVerified());
+        user.setPanVerified(updatedUser.getPanVerified());
+        user.setEmailVerified(updatedUser.getEmailVerified());
+        user.setMobileVerified(updatedUser.getMobileVerified());
+        user.setAadhaarLinked(updatedUser.getAadhaarLinked());
+        user.setAccountLocked(updatedUser.getAccountLocked());
+        user.setRecentActivity(updatedUser.getRecentActivity());
+        user.setDateOfBirth(updatedUser.getDateOfBirth());
 
-        return userRepository.save(user); // Save the updated user
+        return userRepository.save(user);
     }
 
-    // Get User by username for profile display or admin use
+    // -------------------- GET USER BY USERNAME --------------------
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("No user found with this username " + username));
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("No user found with this username " + username));
     }
+
+    // -------------------- SAVE USER --------------------
     public void saveUser(User user) {
         userRepository.save(user);
     }
-
 }

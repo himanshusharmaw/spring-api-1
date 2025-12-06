@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.time.LocalDateTime;
@@ -26,196 +25,162 @@ public class User implements UserDetails {
     private String password;
 
     private String profilePhoto;
+    public String getProfilePhoto() {
+		return profilePhoto;
+	}
 
-    private String role; // ADMIN or USER
+	public void setProfilePhoto(String profilePhoto) {
+		this.profilePhoto = profilePhoto;
+	}
+	private String role;
 
     private String fullName;
     private String aadhaarNumber;
     private String email;
     private String phone;
     private String address;
-    private String registrationDate; // Store as formatted string like "MMM yyyy"
 
-    private boolean twoFA; // Two-factor authentication enabled/disabled
+    private String registrationDate;
+    private boolean twoFA;
     private LocalDateTime lastLogin;
 
-    @Column(nullable = true) 
     private boolean aadhaarVerified;
-    @Column(nullable = true) 
     private Boolean panVerified = false;
+
+    // NEW FIELDS REQUIRED BY FRONTEND
+    private Boolean emailVerified = false;
+    private Boolean mobileVerified = false;
+    private Boolean aadhaarLinked = false;
+    private Boolean accountLocked = false;
+    private String recentActivity;
+    private String dateOfBirth;
+ 
+    public String getBankName() {
+		return bankName;
+	}
+
+	public void setBankName(String bankName) {
+		this.bankName = bankName;
+	}
+
+	public String getAccountNumber() {
+		return accountNumber;
+	}
+
+	public void setAccountNumber(String accountNumber) {
+		this.accountNumber = accountNumber;
+	}
+
+	public String getIfscCode() {
+		return ifscCode;
+	}
+
+	public void setIfscCode(String ifscCode) {
+		this.ifscCode = ifscCode;
+	}
+
+	public String getBranch() {
+		return branch;
+	}
+
+	public void setBranch(String branch) {
+		this.branch = branch;
+	}
+	private String bankName;
+    private String accountNumber;
+    private String ifscCode;
+    private String branch;
+
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference
-    private Wallet wallet; // Assuming wallet relation exists in Wallet entity
+    private Wallet wallet;
 
-    // ---------------- Constructors ----------------
-    public User() {} // Required by JPA
+    public User() {}
 
-    public User(String username, String password, String role) {
-        this.username = username;
-        this.password = password;
-        this.role = role;
+    // -------- Wallet Balance --------
+    public double getWalletBalance() {
+        return wallet != null ? wallet.getBalance().doubleValue() : 0.0;
     }
+    
+    
 
-    // ---------------- Getters/Setters ----------------
-    public Long getId() {
-        return id;
-    }
+    // -------- Getters & Setters --------
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getUsername() {
-        return username;
-    }
+    @Override
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    @Override
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public String getPassword() {
-        return password;
-    }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 
-    public String getRole() {
-        return role;
-    }
+    public String getAadhaarNumber() { return aadhaarNumber; }
+    public void setAadhaarNumber(String aadhaarNumber) { this.aadhaarNumber = aadhaarNumber; }
 
-    public void setRole(String role) {
-        this.role = role;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getFullName() {
-        return fullName;
-    }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
-    public String getAadhaarNumber() {
-        return aadhaarNumber;
-    }
+    public String getRegistrationDate() { return registrationDate; }
+    public void setRegistrationDate(String registrationDate) { this.registrationDate = registrationDate; }
 
-    public void setAadhaarNumber(String aadhaarNumber) {
-        this.aadhaarNumber = aadhaarNumber;
-    }
+    public boolean isTwoFA() { return twoFA; }
+    public void setTwoFA(boolean twoFA) { this.twoFA = twoFA; }
 
-    public String getEmail() {
-        return email;
-    }
+    public LocalDateTime getLastLogin() { return lastLogin; }
+    public void setLastLogin(LocalDateTime lastLogin) { this.lastLogin = lastLogin; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public boolean isAadhaarVerified() { return aadhaarVerified; }
+    public void setAadhaarVerified(boolean aadhaarVerified) { this.aadhaarVerified = aadhaarVerified; }
 
-    public String getPhone() {
-        return phone;
-    }
+    public Boolean getPanVerified() { return panVerified; }
+    public void setPanVerified(Boolean panVerified) { this.panVerified = panVerified; }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+    public Boolean getEmailVerified() { return emailVerified; }
+    public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
 
-    public String getAddress() {
-        return address;
-    }
+    public Boolean getMobileVerified() { return mobileVerified; }
+    public void setMobileVerified(Boolean mobileVerified) { this.mobileVerified = mobileVerified; }
 
-    public void setAddress(String address) {
-        this.address = address;
-    }
+    public Boolean getAadhaarLinked() { return aadhaarLinked; }
+    public void setAadhaarLinked(Boolean aadhaarLinked) { this.aadhaarLinked = aadhaarLinked; }
 
-    public String getRegistrationDate() {
-        return registrationDate;
-    }
+    public Boolean getAccountLocked() { return accountLocked; }
+    public void setAccountLocked(Boolean accountLocked) { this.accountLocked = accountLocked; }
 
-    public void setRegistrationDate(String registrationDate) {
-        this.registrationDate = registrationDate;
-    }
+    public String getRecentActivity() { return recentActivity; }
+    public void setRecentActivity(String recentActivity) { this.recentActivity = recentActivity; }
 
-    public boolean isTwoFA() {
-        return twoFA;
-    }
+    public String getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(String dateOfBirth) { this.dateOfBirth = dateOfBirth; }
 
-    public void setTwoFA(boolean twoFA) {
-        this.twoFA = twoFA;
-    }
+    public Wallet getWallet() { return wallet; }
+    public void setWallet(Wallet wallet) { this.wallet = wallet; }
 
-    public LocalDateTime getLastLogin() {
-        return lastLogin;
-    }
-
-    public void setLastLogin(LocalDateTime lastLogin) {
-        this.lastLogin = lastLogin;
-    }
-
-    public boolean isAadhaarVerified() {
-        return aadhaarVerified;
-    }
-
-    public void setAadhaarVerified(boolean aadhaarVerified) {
-        this.aadhaarVerified = aadhaarVerified;
-    }
-
-    public boolean isPanVerified() {
-        return panVerified;
-    }
-
-    public void setPanVerified(boolean panVerified) {
-        this.panVerified = panVerified;
-    }
-
-    public Wallet getWallet() {
-        return wallet;
-    }
-
-    public void setWallet(Wallet wallet) {
-        this.wallet = wallet;
-    }
-
-    public String getProfilePhoto() {
-        return profilePhoto;
-    }
-
-    public void setProfilePhoto(String profilePhoto) {
-        this.profilePhoto = profilePhoto;
-    }
-
-    // ---------------- UserDetails Implementation ----------------
+    // -------- UserDetails Methods --------
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(
-            new SimpleGrantedAuthority("ROLE_" + role)
-        );
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+    @Override public boolean isAccountNonExpired() { return true; }
+    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override public boolean isEnabled() { return true; }
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
-	public double getWalletBalance() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 }

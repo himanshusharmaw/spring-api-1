@@ -4,6 +4,7 @@ import com.aadhaarservices.aadhaar_services.config.JwtUtils;
 import com.aadhaarservices.aadhaar_services.model.User;
 import com.aadhaarservices.aadhaar_services.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,45 +43,41 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody User user) {
         try {
-            System.out.println("Before authentication: ");
-            System.out.println("Username: " + user.getUsername());
-            System.out.println("Password: " + user.getPassword());
-
-            // Attempt authentication
+            // Authenticate user
             authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword())
             );
-            
-            // Fetch user from DB after successful authentication
-            UserDetails userDetails = userRepository.findByUsername(user.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
-            System.out.println("User details fetched: ");
-            System.out.println("Username: " + userDetails.getUsername());
-            System.out.println("Password: " + userDetails.getPassword());
+            // Fetch actual user from DB
+            User dbUser = userRepository.findByUsername(user.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-            // Compare password manually for debugging
+            // Validate password
             BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-            boolean isPasswordValid = encoder.matches(user.getPassword(), userDetails.getPassword());
-            System.out.println("Password valid: " + isPasswordValid);
+            boolean isPasswordValid = encoder.matches(user.getPassword(), dbUser.getPassword());
 
-            // Generate JWT if credentials are valid
-            if (isPasswordValid) {
-                String token = jwtUtils.generateToken(userDetails);
-                return ResponseEntity.ok(Map.of("token", token));
-            } else {
+            if (!isPasswordValid) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid username or password");
             }
 
+            // ✅ UPDATE LAST LOGIN HERE
+            dbUser.setLastLogin(LocalDateTime.now());
+            userRepository.save(dbUser);
+
+            // Generate JWT token
+            String token = jwtUtils.generateToken(dbUser);
+
+            return ResponseEntity.ok(Map.of(
+                    "token", token,
+                    "lastLogin", dbUser.getLastLogin().toString()
+            ));
+
         } catch (BadCredentialsException e) {
-            // Handle invalid credentials
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid username or password");
         } catch (Exception e) {
-            // Handle other exceptions
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during login");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Login error: " + e.getMessage());
         }
     }
-
 
 
     @PostMapping("/register")

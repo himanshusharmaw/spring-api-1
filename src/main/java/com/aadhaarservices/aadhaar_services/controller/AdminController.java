@@ -7,6 +7,8 @@ import com.aadhaarservices.aadhaar_services.model.Wallet;
 import com.aadhaarservices.aadhaar_services.repository.PaymentDetailsRepository;
 import com.aadhaarservices.aadhaar_services.repository.UserRepository;
 import com.aadhaarservices.aadhaar_services.repository.WalletRepository;
+import com.aadhaarservices.aadhaar_services.service.NotificationService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,9 +30,13 @@ public class AdminController {
     private final WalletRepository walletRepository;
     private final PaymentDetailsRepository paymentDetailsRepository;
     private final PasswordEncoder passwordEncoder;
+   
     
     @Autowired
     private JwtUtils jwtUtil;
+    @Autowired
+    private NotificationService notificationService;
+
 
     private static final String ADMIN_SECRET_KEY = "ADMIN_SECRET_123";
 
@@ -64,6 +70,7 @@ public class AdminController {
     }
 
     // Create new user with wallet
+ // Create new user with wallet
     @PostMapping("/users/create")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createUser(@RequestBody User user) {
@@ -74,7 +81,10 @@ public class AdminController {
         }
 
         // Aadhaar validation
-        if (user.getAadhaarNumber() != null && user.getAadhaarNumber().length() != 12) {
+        if (user.getAadhaarNumber() != null &&
+            !user.getAadhaarNumber().isEmpty() &&
+            user.getAadhaarNumber().length() != 12) {
+
             return ResponseEntity.badRequest().body("Invalid Aadhaar number");
         }
 
@@ -97,6 +107,13 @@ public class AdminController {
         wallet.setUser(savedUser);
         wallet.setBalance(BigDecimal.ZERO);
         walletRepository.save(wallet);
+
+        // -------------- 🔥 SEND NOTIFICATION ------------------
+        notificationService.create(
+            savedUser.getId(),
+            "Account Created",
+            "Your account has been successfully created and activated by the administrative team."
+        );
 
         return ResponseEntity.ok("User created successfully");
     }

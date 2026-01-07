@@ -55,13 +55,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-            		.requestMatchers(
-            			    "/api/auth/login",
-            			    "/api/auth/register",
-            			    "/api/admin/login"
-            			).permitAll()
-
-                .requestMatchers("/api/user/upload-photo").authenticated()
+                .requestMatchers("/login", "/api/admin/login").permitAll()
                 .requestMatchers("/api/user/profile").authenticated()
                 .anyRequest().permitAll()
             )

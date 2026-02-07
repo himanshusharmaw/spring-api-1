@@ -1,9 +1,7 @@
-ntpc-db-info
-db: aadhaar_services_7k2i
-username: aadhaar_services_7k2i_user
-pass: 2NV64m38RaGQ8gHyDJZPprOhx7skOm5W
-external db add: postgresql://aadhaar_services_7k2i_user:2NV64m38RaGQ8gHyDJZPprOhx7skOm5W@dpg-d464afv5r7bs73aug23g-a.singapore-
 
+conection
+set PGPASSWORD=nVa6BwjmrOwuAQVPSqS8ljTd8dicwbHq
+psql -h dpg-d4qrtcje5dus73eu6u7g-a.singapore-postgres.render.com -U aadhaar_services_38ks_user -d aadhaar_services_38ks
 
 
 db Connection:

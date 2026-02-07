@@ -1,10 +1,4 @@
-url: postgresql://aadhaar_services_user:qbXtBpSFF1QhK9clji5zu0ZR3wv5atfc@dpg-d076v5qli9vc73f1antg-a.singapore-postgres.render.com/aadhaar_services
-
-username: aadhaar_services_user
-pass: qbXtBpSFF1QhK9clji5zu0ZR3wv5atfc
-
-connection: psql -h dpg-d076v5qli9vc73f1antg-a.singapore-postgres.render.com -U aadhaar_services_user -d aadhaar_services -W
-pass: qbXtBpSFF1QhK9clji5zu0ZR3wv5atfc
+psql "host=dpg-d5ev76fpm1nc73812d3g-a.singapore-postgres.render.com user=aadhaar_services_jtic_user dbname=aadhaar_services_jtic password=8Zl3Vaa4bEopA3PL7zm53yxaJ6z1K5SL sslmode=require"
 
 
 api ip:

@@ -7,7 +7,9 @@ import java.math.BigDecimal;
 public class Account {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Changed from IDENTITY to AUTO so we can manually set id=1
+    // IDENTITY hands control to DB sequence and ignores setId()
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     private String accountNumber;
@@ -15,56 +17,32 @@ public class Account {
     private String ifscCode;
     private String bankName;
 
-    // Amount to be paid on this account
     @Column(nullable = false)
     private BigDecimal totalAmount;
 
-    // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+    // Stores QR code as base64 Data URI: "data:image/png;base64,..."
+    @Column(columnDefinition = "TEXT")
+    private String qrCodeImage;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    // ── Getters & Setters ─────────────────────────────────
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getAccountNumber() {
-        return accountNumber;
-    }
+    public String getAccountNumber() { return accountNumber; }
+    public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
 
-    public void setAccountNumber(String accountNumber) {
-        this.accountNumber = accountNumber;
-    }
+    public String getAccountHolderName() { return accountHolderName; }
+    public void setAccountHolderName(String accountHolderName) { this.accountHolderName = accountHolderName; }
 
-    public String getAccountHolderName() {
-        return accountHolderName;
-    }
+    public String getIfscCode() { return ifscCode; }
+    public void setIfscCode(String ifscCode) { this.ifscCode = ifscCode; }
 
-    public void setAccountHolderName(String accountHolderName) {
-        this.accountHolderName = accountHolderName;
-    }
+    public String getBankName() { return bankName; }
+    public void setBankName(String bankName) { this.bankName = bankName; }
 
-    public String getIfscCode() {
-        return ifscCode;
-    }
+    public BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
 
-    public void setIfscCode(String ifscCode) {
-        this.ifscCode = ifscCode;
-    }
-
-    public String getBankName() {
-        return bankName;
-    }
-
-    public void setBankName(String bankName) {
-        this.bankName = bankName;
-    }
-
-    public BigDecimal getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(BigDecimal totalAmount) {
-        this.totalAmount = totalAmount;
-    }
+    public String getQrCodeImage() { return qrCodeImage; }
+    public void setQrCodeImage(String qrCodeImage) { this.qrCodeImage = qrCodeImage; }
 }

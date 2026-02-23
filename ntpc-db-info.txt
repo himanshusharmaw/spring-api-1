@@ -1,11 +1,4 @@
-
-conection
-set PGPASSWORD=nVa6BwjmrOwuAQVPSqS8ljTd8dicwbHq
-psql -h dpg-d4qrtcje5dus73eu6u7g-a.singapore-postgres.render.com -U aadhaar_services_38ks_user -d aadhaar_services_38ks
-
-
-db Connection:
-psql "host=dpg-d464afv5r7bs73aug23g-a.singapore-postgres.render.com port=5432 dbname=aadhaar_services_7k2i user=aadhaar_services_7k2i_user password=2NV64m38RaGQ8gHyDJZPprOhx7skOm5W sslmode=require"
+psql "postgresql://neondb_owner:npg_XkuY7wWb3Nmy@ep-spring-mud-a13j40f9-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require"
 
 
 

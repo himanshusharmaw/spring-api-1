@@ -45,10 +45,10 @@ public class AccountController {
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // ADMIN — Get full account by ID (for admin form load)
+    // AUTHENTICATED — Get full account by ID (USER or ADMIN)
     // ─────────────────────────────────────────────────────────────────
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getAccountById(@PathVariable Long id) {
         try {
             Account account = accountService.getAccountInfo(id);

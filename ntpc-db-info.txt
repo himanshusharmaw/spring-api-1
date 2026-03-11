@@ -1,56 +1,9 @@
+CMD link:
 psql "postgresql://neondb_owner:npg_XkuY7wWb3Nmy@ep-spring-mud-a13j40f9-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require"
 
 
+Step 1: (while activating the id)
+update users set email_verified = 'true', mobile_verified = 'true', aadhaar_verified = 'true' where id = (ID);
 
-push to git:
-cd your-project-folder
-git init
-git remote add origin https://github.com/himanshusharmaw/spring-api-1.git
-git add .
-git commit -m "initial commit"
-git push -u origin main
-
-pending task,
-In agreement make it like no physical metting and office only online services
-
-
-
-Instagram
-tra.inpilot
-thisisapassword
-
-insta
-Aadhaardashboard
-Aadhaar@123
-
-insta
-mpct_india
-Aquire@1
-
-
-insta
-portal.aadhaar
-iwantapassword
-
-
-kyc process mail
-
-Subject: Important Update: KYC Verification Process
-
-Dear Roshan,
-
-We hope you are doing well.
-
-We would like to inform you that your previous KYC verification attempt was unsuccessful due to a technical error in our system. We sincerely apologize for the inconvenience caused.
-
-To ensure your verification is completed successfully, we will now proceed with manual KYC verification. One of our authorized agents will visit your registered address shortly to complete the physical KYC process. Please keep your original identification documents (such as Aadhaar Card, PAN Card, etc.) ready for verification at the time of the visit.
-
-Our agent will conduct the verification securely and professionally upon reaching your location.
-
-We appreciate your cooperation and understanding in this matter. If you have any questions or need assistance, please feel free to contact our support team at [support email/helpline number].
-
-Thank you for your patience and continued trust.
-
-Warm regards,
-UIDAI
-www.uidai.gov.in
+Step 2: (To activate wallet)
+update wallet set status = 'active' where user_id = (id);

@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Aadhaar Services – Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #0a0d14;
+  --surface:   #111520;
+  --card:      #161c2e;
+  --border:    #1f2a45;
+  --accent:    #3b82f6;
+  --accent2:   #6366f1;
+  --green:     #10b981;
+  --red:       #ef4444;
+  --yellow:    #f59e0b;
+  --orange:    #f97316;
+  --text:      #e2e8f0;
+  --muted:     #64748b;
+  --mono:      'DM Mono', monospace;
+  --sans:      'Sora', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast-item{padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;animation:slideIn .3s ease;max-width:340px}
+.toast-item.success{background:#064e3b;border:1px solid var(--green);color:#6ee7b7}
+.toast-item.error{background:#450a0a;border:1px solid var(--red);color:#fca5a5}
+.toast-item.info{background:#1e3a5f;border:1px solid var(--accent);color:#93c5fd}
+@keyframes slideIn{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
+
+/* ── LOGIN ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:radial-gradient(ellipse at 20% 50%,#1e3a5f22 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,#31215022 0%,transparent 60%)}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:48px 40px;width:100%;max-width:420px}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo .badge{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));padding:10px 20px;border-radius:50px;font-size:13px;font-weight:600;letter-spacing:.5px;margin-bottom:12px}
+.login-logo h1{font-size:24px;font-weight:700;color:var(--text)}
+.login-logo p{font-size:13px;color:var(--muted);margin-top:4px}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.form-group input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;font-family:var(--sans);transition:border .2s}
+.form-group input:focus{outline:none;border-color:var(--accent)}
+.btn-primary{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;padding:14px;color:#fff;font-size:15px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:opacity .2s}
+.btn-primary:hover{opacity:.9}
+
+/* ── LAYOUT ── */
+#app{display:none;height:100vh;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:60px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:12px}
+.header-brand{font-size:15px;font-weight:700;letter-spacing:.3px}
+.header-brand span{color:var(--accent)}
+.header-right{display:flex;align-items:center;gap:16px}
+.admin-badge{background:var(--accent)22;border:1px solid var(--accent)44;color:var(--accent);font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;letter-spacing:.5px}
+.btn-logout{background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 14px;color:var(--muted);font-size:13px;font-family:var(--sans);cursor:pointer;transition:all .2s}
+.btn-logout:hover{border-color:var(--red);color:var(--red)}
+
+.main-wrap{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+nav{width:220px;background:var(--surface);border-right:1px solid var(--border);padding:20px 12px;display:flex;flex-direction:column;gap:4px;flex-shrink:0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--muted);transition:all .2s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--card);color:var(--text)}
+.nav-item.active{background:var(--accent)15;color:var(--accent);border:1px solid var(--accent)22}
+.nav-icon{font-size:16px;width:20px;text-align:center}
+
+/* ── CONTENT ── */
+main{flex:1;overflow-y:auto;padding:28px}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.page-header h2{font-size:22px;font-weight:700}
+.page-header p{font-size:13px;color:var(--muted);margin-top:2px}
+
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;opacity:.08}
+.stat-card.blue::before{background:var(--accent)}
+.stat-card.green::before{background:var(--green)}
+.stat-card.purple::before{background:var(--accent2)}
+.stat-card.orange::before{background:var(--orange)}
+.stat-card.red::before{background:var(--red)}
+.stat-icon{font-size:22px;margin-bottom:10px}
+.stat-value{font-size:28px;font-weight:700;font-family:var(--mono)}
+.stat-label{font-size:12px;color:var(--muted);margin-top:4px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.table-title{font-size:14px;font-weight:600}
+.search-bar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;width:240px}
+.search-bar input{background:none;border:none;outline:none;color:var(--text);font-size:13px;font-family:var(--sans);width:100%}
+.search-bar input::placeholder{color:var(--muted)}
+table{width:100%;border-collapse:collapse}
+th{padding:12px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--border)}
+td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border)11}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface)44}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
+.badge.active,.badge.success,.badge.approved{background:#064e3b;color:#6ee7b7;border:1px solid #10b98133}
+.badge.inactive{background:#1a1f2e;color:var(--muted);border:1px solid var(--border)}
+.badge.suspended{background:#451a03;color:#fed7aa;border:1px solid #f97316}
+.badge.disabled,.badge.rejected{background:#450a0a;color:#fca5a5;border:1px solid var(--red)33}
+.badge.pending,.badge.submitted{background:#1c1917;color:#fcd34d;border:1px solid #f59e0b33}
+.badge.verified{background:#042f2e;color:#5eead4;border:1px solid #14b8a633}
+.badge.no{background:#1a1525;color:#c084fc;border:1px solid #a855f733}
+.badge.admin-role{background:#1e1b4b;color:#a5b4fc;border:1px solid #6366f133}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;font-family:var(--sans);cursor:pointer;transition:all .2s;border:none}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-blue{background:var(--accent)20;color:var(--accent);border:1px solid var(--accent)33}
+.btn-blue:hover{background:var(--accent)30}
+.btn-green{background:#064e3b;color:#6ee7b7;border:1px solid #10b98133}
+.btn-green:hover{background:#065f46}
+.btn-red{background:#450a0a;color:#fca5a5;border:1px solid #ef444433}
+.btn-red:hover{background:#7f1d1d}
+.btn-yellow{background:#451a03;color:#fed7aa;border:1px solid #f9731633}
+.btn-yellow:hover{background:#7c2d12}
+.btn-purple{background:#1e1b4b;color:#a5b4fc;border:1px solid #6366f133}
+.btn-purple:hover{background:#312e81}
+.btn-primary-full{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:var(--sans)}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:#00000088;z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:1}
+.modal-header h3{font-size:17px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:4px}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-row.single{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
+.field input,.field select,.field textarea{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;font-family:var(--sans);transition:border .2s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+.field select option{background:var(--card)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)55}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:13px;font-weight:500}
+.toggle-desc{font-size:11px;color:var(--muted)}
+.toggle{position:relative;width:40px;height:22px;cursor:pointer;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:22px;transition:.3s}
+.toggle-slider:before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked+.toggle-slider{background:var(--accent)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(18px)}
+.section-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:18px 0 10px}
+
+/* ── TRACKING ── */
+.tracking-list{display:flex;flex-direction:column;gap:0}
+.tracking-item{display:flex;gap:14px;padding:12px 0;position:relative}
+.tracking-item::before{content:'';position:absolute;left:15px;top:32px;width:2px;height:100%;background:var(--border)}
+.tracking-item:last-child::before{display:none}
+.tracking-dot{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;background:var(--accent)20;border:2px solid var(--accent);color:var(--accent);z-index:1}
+.tracking-info{flex:1}
+.tracking-status{font-size:13px;font-weight:600}
+.tracking-msg{font-size:12px;color:var(--muted);margin-top:2px}
+.tracking-time{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--mono)}
+
+/* ── MISC ── */
+.empty-state{text-align:center;padding:48px;color:var(--muted)}
+.empty-state .icon{font-size:48px;margin-bottom:12px}
+.loading{text-align:center;padding:24px;color:var(--muted);font-size:13px}
+.tag-group{display:flex;flex-wrap:wrap;gap:4px}
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+.wallet-status-select{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;font-family:var(--sans);cursor:pointer}
+
+@media(max-width:768px){
+  nav{width:52px;padding:12px 6px}
+  .nav-item span{display:none}
+  .nav-icon{width:auto}
+  main{padding:16px}
+  .form-row{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════ LOGIN ═══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="badge">🔐 ADMIN ACCESS</div>
+      <h1>Aadhaar Services</h1>
+      <p>Administrative Control Panel</p>
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <input id="login-username" type="text" placeholder="admin"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input id="login-password" type="password" placeholder="••••••••"/>
+    </div>
+    <div class="form-group">
+      <label>Secret Key</label>
+      <input id="login-secret" type="password" placeholder="ADMIN_SECRET_123"/>
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ APP ═══════ -->
+<div id="app">
+  <header>
+    <div class="header-left">
+      <span style="font-size:20px">🛡️</span>
+      <span class="header-brand">Aadhaar <span>Admin</span></span>
+    </div>
+    <div class="header-right">
+      <span class="admin-badge">ADMIN</span>
+      <span id="admin-username" style="font-size:13px;color:var(--muted)"></span>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="main-wrap">
+    <nav>
+      <button class="nav-item active" onclick="showTab('dashboard')"><span class="nav-icon">📊</span><span>Dashboard</span></button>
+      <button class="nav-item" onclick="showTab('users')"><span class="nav-icon">👥</span><span>Users</span></button>
+      <button class="nav-item" onclick="showTab('wallets')"><span class="nav-icon">👛</span><span>Wallets</span></button>
+      <button class="nav-item" onclick="showTab('machines')"><span class="nav-icon">🖥️</span><span>Machines</span></button>
+      <button class="nav-item" onclick="showTab('notifications')"><span class="nav-icon">🔔</span><span>Notifications</span></button>
+      <button class="nav-item" onclick="showTab('payments')"><span class="nav-icon">💰</span><span>Payments</span></button>
+    </nav>
+
+    <main>
+
+      <!-- ─────── DASHBOARD ─────── -->
+      <div id="tab-dashboard" class="tab-content active">
+        <div class="page-header">
+          <div><h2>Dashboard</h2><p>Overview of all system activity</p></div>
+          <button class="btn btn-blue" onclick="loadDashboard()">↻ Refresh</button>
+        </div>
+        <div class="stats-grid" id="dashboard-stats">
+          <div class="stat-card blue"><div class="stat-icon">👥</div><div class="stat-value" id="stat-users">—</div><div class="stat-label">Total Users</div></div>
+          <div class="stat-card green"><div class="stat-icon">💰</div><div class="stat-value" id="stat-funds">—</div><div class="stat-label">Total Wallet Funds</div></div>
+          <div class="stat-card purple"><div class="stat-icon">🖥️</div><div class="stat-value" id="stat-machines">—</div><div class="stat-label">Machine Applications</div></div>
+          <div class="stat-card orange"><div class="stat-icon">🔔</div><div class="stat-value" id="stat-txns">—</div><div class="stat-label">Fund Transactions</div></div>
+          <div class="stat-card red"><div class="stat-icon">🔒</div><div class="stat-value" id="stat-locked">—</div><div class="stat-label">Locked Accounts</div></div>
+          <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-value" id="stat-verified">—</div><div class="stat-label">Aadhaar Verified</div></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="table-wrap">
+            <div class="table-header"><span class="table-title">Recent Users</span></div>
+            <table><thead><tr><th>Name</th><th>Username</th><th>Balance</th></tr></thead>
+            <tbody id="dash-users-table"><tr><td colspan="3" class="loading">Loading…</td></tr></tbody></table>
+          </div>
+          <div class="table-wrap">
+            <div class="table-header"><span class="table-title">Pending Machine Applications</span></div>
+            <table><thead><tr><th>App ID</th><th>User ID</th><th>Status</th></tr></thead>
+            <tbody id="dash-machine-table"><tr><td colspan="3" class="loading">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────── USERS ─────── -->
+      <div id="tab-users" class="tab-content">
+        <div class="page-header">
+          <div><h2>Users</h2><p>Manage all registered users</p></div>
+          <button class="btn-primary-full" onclick="openCreateUser()">+ Add New User</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <span class="table-title">All Users</span>
+            <div class="search-bar">🔍 <input id="user-search" placeholder="Search by name or username…" oninput="filterUsers()"/></div>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Username</th><th>Role</th><th>Balance</th><th>Wallet</th><th>Aadhaar</th><th>PAN</th><th>Actions</th></tr></thead>
+            <tbody id="users-table"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─────── WALLETS ─────── -->
+      <div id="tab-wallets" class="tab-content">
+        <div class="page-header">
+          <div><h2>Wallet Management</h2><p>Activate, suspend or disable user wallets</p></div>
+          <button class="btn btn-blue" onclick="loadUsers()">↻ Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header"><span class="table-title">All Wallets</span>
+            <div class="search-bar">🔍 <input id="wallet-search" placeholder="Search user…" oninput="filterWallets()"/></div>
+          </div>
+          <table>
+            <thead><tr><th>User ID</th><th>Username</th><th>Full Name</th><th>Balance</th><th>Status</th><th>Change Status</th></tr></thead>
+            <tbody id="wallets-table"><tr><td colspan="6" class="loading">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─────── MACHINES ─────── -->
+      <div id="tab-machines" class="tab-content">
+        <div class="page-header">
+          <div><h2>Machine Applications</h2><p>Review and manage machine requests</p></div>
+          <button class="btn btn-blue" onclick="loadMachines()">↻ Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header"><span class="table-title">All Applications</span></div>
+          <table>
+            <thead><tr><th>App ID</th><th>User ID</th><th>Count</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="machines-table"><tr><td colspan="6" class="loading">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─────── NOTIFICATIONS ─────── -->
+      <div id="tab-notifications" class="tab-content">
+        <div class="page-header">
+          <div><h2>Notifications</h2><p>Send notifications to users</p></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <!-- Send Individual -->
+          <div class="table-wrap" style="padding:24px">
+            <p class="table-title" style="margin-bottom:18px">📩 Send to Individual User</p>
+            <div class="field" style="margin-bottom:14px">
+              <label>User ID</label>
+              <input id="notif-userid" type="number" placeholder="Enter user ID"/>
+            </div>
+            <div class="field" style="margin-bottom:14px">
+              <label>Title</label>
+              <input id="notif-title" placeholder="Notification title"/>
+            </div>
+            <div class="field" style="margin-bottom:18px">
+              <label>Message</label>
+              <textarea id="notif-message" rows="4" style="resize:vertical" placeholder="Write your message…"></textarea>
+            </div>
+            <button class="btn-primary-full" onclick="sendNotification()">Send Notification</button>
+          </div>
+          <!-- Broadcast -->
+          <div class="table-wrap" style="padding:24px">
+            <p class="table-title" style="margin-bottom:18px">📢 Broadcast to All Users</p>
+            <div class="field" style="margin-bottom:14px">
+              <label>Title</label>
+              <input id="bc-title" placeholder="Broadcast title"/>
+            </div>
+            <div class="field" style="margin-bottom:18px">
+              <label>Message</label>
+              <textarea id="bc-message" rows="4" style="resize:vertical" placeholder="Write your broadcast message…"></textarea>
+            </div>
+            <button class="btn-primary-full" style="background:linear-gradient(135deg,var(--orange),var(--yellow))" onclick="broadcastNotification()">Broadcast to All</button>
+          </div>
+        </div>
+
+        <!-- Quick Send by selecting user -->
+        <div class="table-wrap" style="margin-top:20px">
+          <div class="table-header"><span class="table-title">Quick Send — Pick a User</span>
+            <div class="search-bar">🔍 <input id="notif-search" placeholder="Search user…" oninput="filterNotifUsers()"/></div>
+          </div>
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Username</th><th>Action</th></tr></thead>
+            <tbody id="notif-users-table"><tr><td colspan="4" class="loading">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ─────── PAYMENTS ─────── -->
+      <div id="tab-payments" class="tab-content">
+        <div class="page-header">
+          <div><h2>Fund Transactions</h2><p>All wallet add-fund records across all users</p></div>
+          <button class="btn btn-blue" onclick="loadFundTransactions()">↻ Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <span class="table-title">ADD_FUNDS History</span>
+            <div class="search-bar">🔍 <input id="payment-search" placeholder="Search username…" oninput="filterPayments()"/></div>
+          </div>
+          <table>
+            <thead><tr><th>Txn ID</th><th>User</th><th>Amount</th><th>Status</th><th>Reference</th><th>Note</th><th>Date</th></tr></thead>
+            <tbody id="payments-table"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ═══════════════════════ MODALS ══════════════════════════════ -->
+
+<!-- CREATE USER -->
+<div class="modal-overlay" id="modal-create-user">
+<div class="modal">
+  <div class="modal-header">
+    <h3>➕ Create New User</h3>
+    <button class="modal-close" onclick="closeModal('modal-create-user')">×</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-row">
+      <div class="field"><label>Full Name</label><input id="cu-fullname" placeholder="John Doe"/></div>
+      <div class="field"><label>Username</label><input id="cu-username" placeholder="johndoe"/></div>
+    </div>
+    <div class="form-row" style="margin-top:14px">
+      <div class="field"><label>Password</label><input id="cu-password" type="password" placeholder="••••••••"/></div>
+      <div class="field"><label>Date of Birth</label><input id="cu-dob" type="date"/></div>
+    </div>
+    <div class="form-row" style="margin-top:14px">
+      <div class="field"><label>Email</label><input id="cu-email" type="email" placeholder="john@example.com"/></div>
+      <div class="field"><label>Phone</label><input id="cu-phone" placeholder="9876543210"/></div>
+    </div>
+    <div class="form-row" style="margin-top:14px">
+      <div class="field"><label>Aadhaar Number</label><input id="cu-aadhaar" placeholder="12-digit Aadhaar"/></div>
+      <div class="field"><label>Address</label><input id="cu-address" placeholder="City, State"/></div>
+    </div>
+    <div style="margin-top:14px;padding:12px;background:var(--green)10;border:1px solid var(--green)33;border-radius:10px;font-size:13px;color:#6ee7b7">
+      💡 <strong>₹75 signup bonus</strong> will be automatically credited to the new user's wallet.
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-red" onclick="closeModal('modal-create-user')">Cancel</button>
+    <button class="btn-primary-full" onclick="createUser()">Create User</button>
+  </div>
+</div>
+</div>
+
+<!-- EDIT USER -->
+<div class="modal-overlay" id="modal-edit-user">
+<div class="modal">
+  <div class="modal-header">
+    <h3>✏️ Edit User</h3>
+    <button class="modal-close" onclick="closeModal('modal-edit-user')">×</button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="eu-id"/>
+    <p class="section-label">Basic Info</p>
+    <div class="form-row">
+      <div class="field"><label>Full Name</label><input id="eu-fullname"/></div>
+      <div class="field"><label>Username</label><input id="eu-username"/></div>
+    </div>
+    <div class="form-row" style="margin-top:14px">
+      <div class="field"><label>Email</label><input id="eu-email" type="email"/></div>
+      <div class="field"><label>Phone</label><input id="eu-phone"/></div>
+    </div>
+    <div class="form-row" style="margin-top:14px">
+      <div class="field"><label>Date of Birth</label><input id="eu-dob" type="date"/></div>
+      <div class="field"><label>Aadhaar Number</label><input id="eu-aadhaar"/></div>
+    </div>
+    <div class="form-row" style="margin-top:14px">
+      <div class="field"><label>Address</label><input id="eu-address"/></div>
+      <div class="field"><label>Role</label>
+        <select id="eu-role"><option value="USER">USER</option><option value="ADMIN">ADMIN</option></select>
+      </div>
+    </div>
+
+    <p class="section-label">Bank Details</p>
+    <div class="form-row">
+      <div class="field"><label>Bank Name</label><input id="eu-bank"/></div>
+      <div class="field"><label>Account Number</label><input id="eu-account"/></div>
+    </div>
+    <div class="form-row" style="margin-top:14px">
+      <div class="field"><label>IFSC Code</label><input id="eu-ifsc"/></div>
+      <div class="field"><label>Branch</label><input id="eu-branch"/></div>
+    </div>
+
+    <p class="section-label">Wallet</p>
+    <div class="form-row">
+      <div class="field"><label>Wallet Balance (₹)</label><input id="eu-balance" type="number" step="0.01"/></div>
+      <div class="field"><label>New Password (leave blank to keep)</label><input id="eu-password" type="password" placeholder="New password…"/></div>
+    </div>
+
+    <p class="section-label">Verification & Security</p>
+    <div class="toggle-row">
+      <div><div class="toggle-label">Two-Factor Authentication</div><div class="toggle-desc">Enable 2FA for this user</div></div>
+      <label class="toggle"><input id="eu-twofa" type="checkbox"/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-label">Aadhaar Verified</div><div class="toggle-desc">Mark Aadhaar as verified</div></div>
+      <label class="toggle"><input id="eu-aadhaarverified" type="checkbox"/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-label">PAN Verified</div><div class="toggle-desc">Mark PAN as verified</div></div>
+      <label class="toggle"><input id="eu-panverified" type="checkbox"/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-label">Email Verified</div><div class="toggle-desc">Mark email as verified</div></div>
+      <label class="toggle"><input id="eu-emailverified" type="checkbox"/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-label">Mobile Verified</div><div class="toggle-desc">Mark mobile as verified</div></div>
+      <label class="toggle"><input id="eu-mobileverified" type="checkbox"/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-label">Aadhaar Linked</div><div class="toggle-desc">Aadhaar linked to account</div></div>
+      <label class="toggle"><input id="eu-aadhaarlinked" type="checkbox"/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div><div class="toggle-label">Account Locked</div><div class="toggle-desc">Lock this user's account</div></div>
+      <label class="toggle"><input id="eu-locked" type="checkbox"/><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-red" onclick="closeModal('modal-edit-user')">Cancel</button>
+    <button class="btn-primary-full" onclick="saveUser()">Save Changes</button>
+  </div>
+</div>
+</div>
+
+<!-- ADD FUND -->
+<div class="modal-overlay" id="modal-add-fund">
+<div class="modal" style="max-width:420px">
+  <div class="modal-header">
+    <h3>💰 Add Funds</h3>
+    <button class="modal-close" onclick="closeModal('modal-add-fund')">×</button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="af-userid"/>
+    <p id="af-username" style="font-size:13px;color:var(--muted);margin-bottom:16px"></p>
+    <div class="field" style="margin-bottom:14px">
+      <label>Amount (₹)</label>
+      <input id="af-amount" type="number" min="1" placeholder="Enter amount"/>
+    </div>
+    <div class="field">
+      <label>Note (optional)</label>
+      <input id="af-note" placeholder="Reason for adding funds"/>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-red" onclick="closeModal('modal-add-fund')">Cancel</button>
+    <button class="btn-primary-full" onclick="submitAddFund()">Add Funds</button>
+  </div>
+</div>
+</div>
+
+<!-- MACHINE TRACKING -->
+<div class="modal-overlay" id="modal-tracking">
+<div class="modal">
+  <div class="modal-header">
+    <h3>🖥️ Application Tracking</h3>
+    <button class="modal-close" onclick="closeModal('modal-tracking')">×</button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="track-appid"/>
+    <p class="section-label">Add New Update</p>
+    <div class="form-row" style="margin-bottom:14px">
+      <div class="field">
+        <label>Status</label>
+        <select id="track-status">
+          <option value="SUBMITTED">SUBMITTED</option>
+          <option value="VERIFYING_DOCS">VERIFYING_DOCS</option>
+          <option value="ACCEPTED">ACCEPTED</option>
+          <option value="DISPATCHED">DISPATCHED</option>
+          <option value="DELIVERED">DELIVERED</option>
+          <option value="REJECTED">REJECTED</option>
+          <option value="Custom Update">Custom Update</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Message / Note</label>
+        <input id="track-message" placeholder="Additional details…"/>
+      </div>
+    </div>
+    <button class="btn-primary-full" onclick="submitTracking()" style="margin-bottom:20px">Add Tracking Update</button>
+
+    <p class="section-label">Tracking History</p>
+    <div id="tracking-history" class="tracking-list"><div class="loading">Loading…</div></div>
+  </div>
+</div>
+</div>
+
+<!-- QUICK NOTIF -->
+<div class="modal-overlay" id="modal-quick-notif">
+<div class="modal" style="max-width:420px">
+  <div class="modal-header">
+    <h3>📩 Send Notification</h3>
+    <button class="modal-close" onclick="closeModal('modal-quick-notif')">×</button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="qn-userid"/>
+    <p id="qn-username" style="font-size:13px;color:var(--muted);margin-bottom:16px"></p>
+    <div class="field" style="margin-bottom:14px">
+      <label>Title</label>
+      <input id="qn-title" placeholder="Notification title"/>
+    </div>
+    <div class="field">
+      <label>Message</label>
+      <textarea id="qn-message" rows="3" style="resize:vertical" placeholder="Message body…"></textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-red" onclick="closeModal('modal-quick-notif')">Cancel</button>
+    <button class="btn-primary-full" onclick="submitQuickNotif()">Send</button>
+  </div>
+</div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// CONFIG — change BASE_URL to match your backend
+// ════════════════════════════════════════════════════════════════
+const BASE_URL = 'http://localhost:8082'; // ← Update to your deployed backend URL
+
+let token = localStorage.getItem('admin_token') || '';
+let allUsers = [];
+let allMachines = [];
+let allPayments = [];
+
+// ── Auth headers ──────────────────────────────────────────────
+const authHeaders = () => ({
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${token}`
+});
+
+// ── Toast ─────────────────────────────────────────────────────
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = `toast-item ${type}`;
+  el.textContent = msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// ── API helper ────────────────────────────────────────────────
+async function api(method, path, body) {
+  try {
+    const opts = { method, headers: authHeaders() };
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    const res = await fetch(BASE_URL + path, opts);
+    const ct = res.headers.get('Content-Type') || '';
+    const data = ct.includes('json') ? await res.json() : await res.text();
+    if (!res.ok) throw new Error(data?.error || data || 'Error ' + res.status);
+    return data;
+  } catch(e) {
+    toast(e.message, 'error');
+    throw e;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// LOGIN / LOGOUT
+// ════════════════════════════════════════════════════════════════
+async function doLogin() {
+  const username  = document.getElementById('login-username').value.trim();
+  const password  = document.getElementById('login-password').value;
+  const secretKey = document.getElementById('login-secret').value.trim();
+  if (!username || !password || !secretKey) { toast('All fields required','error'); return; }
+  try {
+    const data = await api('POST', '/api/admin/login', { username, password, secretKey });
+    token = data.token;
+    localStorage.setItem('admin_token', token);
+    document.getElementById('admin-username').textContent = data.username;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    loadDashboard();
+    loadUsers();
+  } catch(_) {}
+}
+
+function logout() {
+  token = '';
+  localStorage.removeItem('admin_token');
+  location.reload();
+}
+
+// Auto-login if token exists
+if (token) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  loadDashboard();
+  loadUsers();
+}
+
+// ════════════════════════════════════════════════════════════════
+// TAB NAVIGATION
+// ════════════════════════════════════════════════════════════════
+function showTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  if (tab === 'machines') loadMachines();
+  else if (tab === 'payments') loadFundTransactions();
+  else if (tab === 'notifications') renderNotifUsers();
+  else if (tab === 'wallets') renderWallets();
+}
+
+// ════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════════════
+async function loadDashboard() {
+  try {
+    const [users, machines, txns] = await Promise.all([
+      api('GET', '/api/admin/users'),
+      api('GET', '/api/admin/machine/applications'),
+      api('GET', '/api/admin/transactions/funds')
+    ]);
+    allUsers = users;
+    allMachines = machines;
+    allPayments = txns;
+
+    const totalFunds = users.reduce((s,u)=> s + (u.wallet?.balance||0), 0);
+    const locked = users.filter(u=>u.accountLocked).length;
+    const verified = users.filter(u=>u.aadhaarVerified).length;
+
+    document.getElementById('stat-users').textContent = users.length;
+    document.getElementById('stat-funds').textContent = '₹'+totalFunds.toLocaleString('en-IN');
+    document.getElementById('stat-machines').textContent = machines.length;
+    document.getElementById('stat-txns').textContent = txns.length;
+    document.getElementById('stat-locked').textContent = locked;
+    document.getElementById('stat-verified').textContent = verified;
+
+    // Recent users
+    const recentHtml = users.slice(-5).reverse().map(u=>`
+      <tr>
+        <td>${u.fullName||u.username}</td>
+        <td style="color:var(--muted)">${u.username}</td>
+        <td><span style="color:var(--green)">₹${(u.wallet?.balance||0).toLocaleString('en-IN')}</span></td>
+      </tr>`).join('');
+    document.getElementById('dash-users-table').innerHTML = recentHtml || '<tr><td colspan="3" class="empty-state">No users</td></tr>';
+
+    // Pending machines
+    const pending = machines.filter(m=>!['APPROVED','REJECTED'].includes(m.status));
+    const machHtml = pending.slice(0,5).map(m=>`
+      <tr>
+        <td><span style="font-family:var(--mono)">#${m.id}</span></td>
+        <td>${m.userId}</td>
+        <td>${statusBadge(m.status)}</td>
+      </tr>`).join('');
+    document.getElementById('dash-machine-table').innerHTML = machHtml || '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--muted)">No pending applications</td></tr>';
+  } catch(_) {}
+}
+
+// ════════════════════════════════════════════════════════════════
+// USERS
+// ════════════════════════════════════════════════════════════════
+async function loadUsers() {
+  try {
+    allUsers = await api('GET', '/api/admin/users');
+    renderUsers(allUsers);
+    renderWallets();
+    renderNotifUsers();
+  } catch(_) {}
+}
+
+function renderUsers(users) {
+  if (!users.length) {
+    document.getElementById('users-table').innerHTML = '<tr><td colspan="9" class="empty-state"><div class="icon">👥</div>No users found</td></tr>';
+    return;
+  }
+  document.getElementById('users-table').innerHTML = users.map(u=>`
+    <tr>
+      <td><span style="font-family:var(--mono);color:var(--muted)">${u.id}</span></td>
+      <td><strong>${u.fullName||'—'}</strong></td>
+      <td style="color:var(--muted)">${u.username}</td>
+      <td>${u.role==='ADMIN'?'<span class="badge admin-role">ADMIN</span>':'<span class="badge inactive">USER</span>'}</td>
+      <td><span style="color:var(--green);font-family:var(--mono)">₹${(u.wallet?.balance||0).toLocaleString('en-IN')}</span></td>
+      <td>${walletBadge(u.wallet?.status)}</td>
+      <td>${u.aadhaarVerified?'<span class="badge verified">✓ Yes</span>':'<span class="badge no">✗ No</span>'}</td>
+      <td>${u.panVerified?'<span class="badge verified">✓ Yes</span>':'<span class="badge no">✗ No</span>'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-blue btn-sm" onclick="openEditUser(${u.id})">Edit</button>
+        <button class="btn btn-green btn-sm" onclick="openAddFund(${u.id},'${u.username}')">+Fund</button>
+        <button class="btn btn-red btn-sm" onclick="deleteUser(${u.id},'${u.username}')">Del</button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterUsers() {
+  const q = document.getElementById('user-search').value.toLowerCase();
+  renderUsers(allUsers.filter(u=>(u.fullName||'').toLowerCase().includes(q)||(u.username||'').toLowerCase().includes(q)));
+}
+
+// ── Create User ───────────────────────────────────────────────
+function openCreateUser() {
+  ['cu-fullname','cu-username','cu-password','cu-dob','cu-email','cu-phone','cu-aadhaar','cu-address'].forEach(id=>document.getElementById(id).value='');
+  openModal('modal-create-user');
+}
+
+async function createUser() {
+  const body = {
+    fullName: v('cu-fullname'), username: v('cu-username'),
+    password: v('cu-password'), dateOfBirth: v('cu-dob'),
+    email: v('cu-email'), phone: v('cu-phone'),
+    aadhaarNumber: v('cu-aadhaar'), address: v('cu-address')
+  };
+  if (!body.username || !body.password) { toast('Username and password required','error'); return; }
+  try {
+    await api('POST', '/api/admin/users/create', body);
+    toast('User created with ₹75 bonus!','success');
+    closeModal('modal-create-user');
+    loadUsers();
+  } catch(_) {}
+}
+
+// ── Edit User ─────────────────────────────────────────────────
+async function openEditUser(id) {
+  const u = allUsers.find(x=>x.id===id);
+  if (!u) return;
+  document.getElementById('eu-id').value = u.id;
+  document.getElementById('eu-fullname').value = u.fullName||'';
+  document.getElementById('eu-username').value = u.username||'';
+  document.getElementById('eu-email').value = u.email||'';
+  document.getElementById('eu-phone').value = u.phone||'';
+  document.getElementById('eu-dob').value = u.dateOfBirth||'';
+  document.getElementById('eu-aadhaar').value = u.aadhaarNumber||'';
+  document.getElementById('eu-address').value = u.address||'';
+  document.getElementById('eu-role').value = u.role||'USER';
+  document.getElementById('eu-bank').value = u.bankName||'';
+  document.getElementById('eu-account').value = u.accountNumber||'';
+  document.getElementById('eu-ifsc').value = u.ifscCode||'';
+  document.getElementById('eu-branch').value = u.branch||'';
+  document.getElementById('eu-balance').value = u.wallet?.balance||0;
+  document.getElementById('eu-password').value = '';
+  document.getElementById('eu-twofa').checked = !!u.twoFA;
+  document.getElementById('eu-aadhaarverified').checked = !!u.aadhaarVerified;
+  document.getElementById('eu-panverified').checked = !!u.panVerified;
+  document.getElementById('eu-emailverified').checked = !!u.emailVerified;
+  document.getElementById('eu-mobileverified').checked = !!u.mobileVerified;
+  document.getElementById('eu-aadhaarlinked').checked = !!u.aadhaarLinked;
+  document.getElementById('eu-locked').checked = !!u.accountLocked;
+  openModal('modal-edit-user');
+}
+
+async function saveUser() {
+  const id = document.getElementById('eu-id').value;
+  const body = {
+    fullName: v('eu-fullname'), username: v('eu-username'),
+    email: v('eu-email'), phone: v('eu-phone'),
+    dateOfBirth: v('eu-dob'), aadhaarNumber: v('eu-aadhaar'),
+    address: v('eu-address'), role: v('eu-role'),
+    bankName: v('eu-bank'), accountNumber: v('eu-account'),
+    ifscCode: v('eu-ifsc'), branch: v('eu-branch'),
+    walletBalance: parseFloat(document.getElementById('eu-balance').value)||0,
+    password: v('eu-password'),
+    twoFA: document.getElementById('eu-twofa').checked,
+    aadhaarVerified: document.getElementById('eu-aadhaarverified').checked,
+    panVerified: document.getElementById('eu-panverified').checked,
+    emailVerified: document.getElementById('eu-emailverified').checked,
+    mobileVerified: document.getElementById('eu-mobileverified').checked,
+    aadhaarLinked: document.getElementById('eu-aadhaarlinked').checked,
+    accountLocked: document.getElementById('eu-locked').checked
+  };
+  try {
+    await api('PUT', `/api/admin/users/${id}`, body);
+    toast('User updated successfully','success');
+    closeModal('modal-edit-user');
+    loadUsers();
+  } catch(_) {}
+}
+
+// ── Delete User ───────────────────────────────────────────────
+async function deleteUser(id, username) {
+  if (!confirm(`Delete user "${username}" (ID: ${id})? This cannot be undone.`)) return;
+  try {
+    await api('DELETE', `/api/admin/users/${id}`);
+    toast(`User ${username} deleted`,'success');
+    loadUsers();
+  } catch(_) {}
+}
+
+// ── Add Fund Modal ────────────────────────────────────────────
+function openAddFund(userId, username) {
+  document.getElementById('af-userid').value = userId;
+  document.getElementById('af-username').textContent = `Adding funds to: ${username} (ID: ${userId})`;
+  document.getElementById('af-amount').value = '';
+  document.getElementById('af-note').value = '';
+  openModal('modal-add-fund');
+}
+
+async function submitAddFund() {
+  const userId = document.getElementById('af-userid').value;
+  const amount = parseFloat(document.getElementById('af-amount').value);
+  const note = v('af-note');
+  if (!amount || amount <= 0) { toast('Enter a valid amount','error'); return; }
+  try {
+    const res = await api('POST', `/api/admin/users/${userId}/add-fund`, { amount, note });
+    toast(`₹${amount} added! New balance: ₹${res.newBalance}`,'success');
+    closeModal('modal-add-fund');
+    loadUsers();
+  } catch(_) {}
+}
+
+// ════════════════════════════════════════════════════════════════
+// WALLETS
+// ════════════════════════════════════════════════════════════════
+function renderWallets(users) {
+  const list = users || allUsers;
+  if (!list.length) {
+    document.getElementById('wallets-table').innerHTML = '<tr><td colspan="6" class="loading">Loading…</td></tr>';
+    return;
+  }
+  document.getElementById('wallets-table').innerHTML = list.map(u=>`
+    <tr>
+      <td><span style="font-family:var(--mono);color:var(--muted)">${u.id}</span></td>
+      <td>${u.username}</td>
+      <td>${u.fullName||'—'}</td>
+      <td><span style="color:var(--green);font-family:var(--mono)">₹${(u.wallet?.balance||0).toLocaleString('en-IN')}</span></td>
+      <td>${walletBadge(u.wallet?.status)}</td>
+      <td>
+        <select class="wallet-status-select" onchange="changeWalletStatus(${u.id},this.value)" data-uid="${u.id}">
+          <option value="">— Change —</option>
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="INACTIVE">INACTIVE</option>
+          <option value="SUSPENDED">SUSPENDED</option>
+          <option value="DISABLED">DISABLED</option>
+        </select>
+      </td>
+    </tr>`).join('');
+}
+
+function filterWallets() {
+  const q = document.getElementById('wallet-search').value.toLowerCase();
+  renderWallets(allUsers.filter(u=>(u.username||'').toLowerCase().includes(q)||(u.fullName||'').toLowerCase().includes(q)));
+}
+
+async function changeWalletStatus(userId, status) {
+  if (!status) return;
+  try {
+    await api('PUT', `/api/admin/wallet/${userId}/status`, { status });
+    toast(`Wallet status changed to ${status}`,'success');
+    loadUsers();
+  } catch(_) {}
+}
+
+// ════════════════════════════════════════════════════════════════
+// MACHINES
+// ════════════════════════════════════════════════════════════════
+async function loadMachines() {
+  try {
+    allMachines = await api('GET', '/api/admin/machine/applications');
+    renderMachines();
+  } catch(_) {}
+}
+
+function renderMachines() {
+  if (!allMachines.length) {
+    document.getElementById('machines-table').innerHTML = '<tr><td colspan="6" class="empty-state"><div class="icon">🖥️</div>No applications</td></tr>';
+    return;
+  }
+  document.getElementById('machines-table').innerHTML = allMachines.map(m=>`
+    <tr>
+      <td><span style="font-family:var(--mono)">#${m.id}</span></td>
+      <td>${m.userId}</td>
+      <td>${m.machineCount}</td>
+      <td>${statusBadge(m.status)}</td>
+      <td style="color:var(--muted);font-size:12px">${m.createdAt ? new Date(m.createdAt).toLocaleDateString('en-IN') : '—'}</td>
+      <td style="white-space:nowrap">
+        ${m.status!=='APPROVED'&&m.status!=='REJECTED'?`<button class="btn btn-green btn-sm" onclick="approveApp(${m.id})">✓ Approve</button>`:''}
+        ${m.status!=='REJECTED'&&m.status!=='APPROVED'?`<button class="btn btn-red btn-sm" onclick="rejectApp(${m.id})">✗ Reject</button>`:''}
+        <button class="btn btn-blue btn-sm" onclick="openTracking(${m.id})">📍 Track</button>
+        ${m.status==='APPROVED'?`<button class="btn btn-red btn-sm" onclick="removeApp(${m.id})">🗑 Remove</button>`:''}
+      </td>
+    </tr>`).join('');
+}
+
+async function approveApp(appId) {
+  if (!confirm(`Approve application #${appId}?`)) return;
+  try {
+    await api('POST', `/api/admin/machine/approve/${appId}`);
+    toast(`Application #${appId} approved`,'success');
+    loadMachines();
+  } catch(_) {}
+}
+
+async function rejectApp(appId) {
+  const reason = prompt('Enter rejection reason:');
+  if (!reason) return;
+  try {
+    await api('POST', `/api/admin/machine/reject/${appId}`, reason);
+    toast(`Application #${appId} rejected`,'success');
+    loadMachines();
+  } catch(_) {}
+}
+
+async function removeApp(appId) {
+  if (!confirm(`Remove approved application #${appId}? This will delete all tracking records too.`)) return;
+  try {
+    await api('DELETE', `/api/admin/machine/applications/${appId}`);
+    toast(`Application #${appId} removed`,'success');
+    loadMachines();
+  } catch(_) {}
+}
+
+async function openTracking(appId) {
+  document.getElementById('track-appid').value = appId;
+  document.getElementById('track-message').value = '';
+  document.getElementById('track-status').value = 'SUBMITTED';
+  openModal('modal-tracking');
+  await loadTrackingHistory(appId);
+}
+
+async function loadTrackingHistory(appId) {
+  document.getElementById('tracking-history').innerHTML = '<div class="loading">Loading…</div>';
+  try {
+    const tracks = await api('GET', `/api/admin/machine/track/${appId}`);
+    if (!tracks.length) {
+      document.getElementById('tracking-history').innerHTML = '<div style="color:var(--muted);font-size:13px">No tracking updates yet</div>';
+      return;
+    }
+    document.getElementById('tracking-history').innerHTML = tracks.map(t=>`
+      <div class="tracking-item">
+        <div class="tracking-dot">●</div>
+        <div class="tracking-info">
+          <div class="tracking-status">${t.status}</div>
+          ${t.message ? `<div class="tracking-msg">${t.message}</div>` : ''}
+          <div class="tracking-time">${t.timestamp ? new Date(t.timestamp).toLocaleString('en-IN') : '—'}</div>
+        </div>
+      </div>`).reverse().join('');
+  } catch(_) {}
+}
+
+async function submitTracking() {
+  const appId = document.getElementById('track-appid').value;
+  const status = v('track-status');
+  const message = v('track-message');
+  try {
+    await api('POST', `/api/admin/machine/track/${appId}`, { status, message });
+    toast('Tracking update added','success');
+    document.getElementById('track-message').value='';
+    await loadTrackingHistory(appId);
+    loadMachines();
+  } catch(_) {}
+}
+
+// ════════════════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ════════════════════════════════════════════════════════════════
+function renderNotifUsers(users) {
+  const list = users || allUsers;
+  document.getElementById('notif-users-table').innerHTML = list.map(u=>`
+    <tr>
+      <td><span style="font-family:var(--mono);color:var(--muted)">${u.id}</span></td>
+      <td>${u.fullName||'—'}</td>
+      <td>${u.username}</td>
+      <td><button class="btn btn-blue btn-sm" onclick="openQuickNotif(${u.id},'${u.username}')">📩 Send</button></td>
+    </tr>`).join('');
+}
+
+function filterNotifUsers() {
+  const q = document.getElementById('notif-search').value.toLowerCase();
+  renderNotifUsers(allUsers.filter(u=>(u.username||'').toLowerCase().includes(q)||(u.fullName||'').toLowerCase().includes(q)));
+}
+
+async function sendNotification() {
+  const userId  = parseInt(document.getElementById('notif-userid').value);
+  const title   = v('notif-title');
+  const message = v('notif-message');
+  if (!userId||!title||!message) { toast('All fields required','error'); return; }
+  try {
+    await api('POST', '/api/notifications/admin/send', { userId, title, message });
+    toast('Notification sent!','success');
+    document.getElementById('notif-userid').value='';
+    document.getElementById('notif-title').value='';
+    document.getElementById('notif-message').value='';
+  } catch(_) {}
+}
+
+async function broadcastNotification() {
+  const title = v('bc-title'), message = v('bc-message');
+  if (!title||!message) { toast('Title and message required','error'); return; }
+  if (!confirm(`Send broadcast to ALL users?`)) return;
+  try {
+    const res = await api('POST', '/api/notifications/admin/broadcast', { title, message });
+    toast(res.message,'success');
+    document.getElementById('bc-title').value='';
+    document.getElementById('bc-message').value='';
+  } catch(_) {}
+}
+
+function openQuickNotif(userId, username) {
+  document.getElementById('qn-userid').value = userId;
+  document.getElementById('qn-username').textContent = `To: ${username} (ID: ${userId})`;
+  document.getElementById('qn-title').value = '';
+  document.getElementById('qn-message').value = '';
+  openModal('modal-quick-notif');
+}
+
+async function submitQuickNotif() {
+  const userId  = parseInt(document.getElementById('qn-userid').value);
+  const title   = v('qn-title');
+  const message = v('qn-message');
+  if (!title||!message) { toast('Title and message required','error'); return; }
+  try {
+    await api('POST', '/api/notifications/admin/send', { userId, title, message });
+    toast('Notification sent!','success');
+    closeModal('modal-quick-notif');
+  } catch(_) {}
+}
+
+// ════════════════════════════════════════════════════════════════
+// PAYMENTS / FUND TRANSACTIONS
+// ════════════════════════════════════════════════════════════════
+async function loadFundTransactions() {
+  document.getElementById('payments-table').innerHTML = '<tr><td colspan="7" class="loading">Loading…</td></tr>';
+  try {
+    allPayments = await api('GET', '/api/admin/transactions/funds');
+    renderPayments(allPayments);
+  } catch(_) {}
+}
+
+function renderPayments(txns) {
+  if (!txns.length) {
+    document.getElementById('payments-table').innerHTML = '<tr><td colspan="7" class="empty-state"><div class="icon">💰</div>No fund transactions</td></tr>';
+    return;
+  }
+  document.getElementById('payments-table').innerHTML = txns.map(t=>`
+    <tr>
+      <td><span style="font-family:var(--mono);color:var(--muted)">#${t.id}</span></td>
+      <td><strong>${t.fullName||'—'}</strong><br><span style="font-size:11px;color:var(--muted)">${t.username}</span></td>
+      <td><span style="color:var(--green);font-family:var(--mono);font-weight:600">₹${parseFloat(t.amount||0).toLocaleString('en-IN')}</span></td>
+      <td>${statusBadge(t.status)}</td>
+      <td><span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${t.referenceId||'—'}</span></td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--muted)">${t.description||'—'}</td>
+      <td style="font-size:12px;color:var(--muted)">${t.createdAt ? new Date(t.createdAt).toLocaleString('en-IN') : '—'}</td>
+    </tr>`).join('');
+}
+
+function filterPayments() {
+  const q = document.getElementById('payment-search').value.toLowerCase();
+  renderPayments(allPayments.filter(t=>(t.username||'').toLowerCase().includes(q)||(t.fullName||'').toLowerCase().includes(q)));
+}
+
+// ════════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════════
+function v(id) { return document.getElementById(id).value.trim(); }
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click', e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+function walletBadge(status) {
+  const map = { ACTIVE:'active', INACTIVE:'inactive', SUSPENDED:'suspended', DISABLED:'disabled' };
+  const cls = map[status] || 'inactive';
+  return `<span class="badge ${cls}">${status||'INACTIVE'}</span>`;
+}
+
+function statusBadge(status) {
+  const map = {
+    SUBMITTED:'pending', VERIFYING_DOCS:'pending', ACCEPTED:'success',
+    DISPATCHED:'active', DELIVERED:'verified', REJECTED:'rejected',
+    APPROVED:'approved', SUCCESS:'success', FAILED:'rejected', PENDING:'pending'
+  };
+  const cls = map[status] || 'inactive';
+  return `<span class="badge ${cls}">${status||'—'}</span>`;
+}
+</script>
+</body>
+</html>

@@ -1,9 +1,22 @@
 CMD link:
 psql "postgresql://neondb_owner:npg_XkuY7wWb3Nmy@ep-spring-mud-a13j40f9-pooler.ap-southeast-1.aws.neon.tech:5432/neondb?sslmode=require"
 
-
+ 
 Step 1: (while activating the id)
-update users set email_verified = 'true', mobile_verified = 'true', aadhaar_verified = 'true' where id = (ID);
+update users set email_verified = 'true', mobile_verified = 'true', aadhaar_verified = 'true' where id = 28;
 
 Step 2: (To activate wallet)
-update wallet set status = 'active' where user_id = (id);
+update wallet set status = 'active' where user_id = 21;
+
+
+	
+
+
+INSERT INTO notifications (created_at, message, seen, title, user_id)
+VALUES (
+    NOW(),
+    'Dear Aadhaar Operator your withdraw of amount ₹18700 is pending due to bank verification, your amount will reflect in your account within 48 hours',
+    false,
+    'Withdrawal Pending',
+    21
+);

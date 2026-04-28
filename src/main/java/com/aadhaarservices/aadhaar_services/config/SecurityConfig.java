@@ -55,10 +55,10 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/api/admin/login").permitAll()
-                .requestMatchers("/api/user/profile").authenticated()
-                .anyRequest().permitAll()
-            )
+            	    .requestMatchers("/login", "/api/admin/login", "/admin-panel.html").permitAll()
+            	    .requestMatchers("/api/user/profile").authenticated()
+            	    .anyRequest().permitAll()
+            	)
             .authenticationProvider(authenticationProvider())
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

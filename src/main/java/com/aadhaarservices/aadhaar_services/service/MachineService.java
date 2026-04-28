@@ -23,8 +23,7 @@ public class MachineService {
     @Autowired
     private NotificationService notificationService;
 
-
-    // USER SUBMITS APPLICATION
+    // ── User submits application ─────────────────────────────────────
     public MachineApplication apply(Long userId) {
 
         long count = applicationRepo.countByUserId(userId);
@@ -37,10 +36,8 @@ public class MachineService {
         app.setCreatedAt(LocalDateTime.now());
         applicationRepo.save(app);
 
-        // Tracking
-        addTracking(app.getId(), "Application Submitted");
+        addTrackingInternal(app.getId(), "Application Submitted", "");
 
-        // 🔔 Notification
         notificationService.create(
                 userId,
                 "Machine Application Submitted",
@@ -50,11 +47,9 @@ public class MachineService {
         return app;
     }
 
-
     public List<MachineApplication> getUserMachines(Long userId) {
         return applicationRepo.findByUserId(userId);
     }
-
 
     public List<MachineTracking> getTracking(Long userId) {
         MachineApplication app = applicationRepo.findTopByUserIdOrderByIdDesc(userId);
@@ -62,24 +57,22 @@ public class MachineService {
         return trackingRepo.findByApplicationId(app.getId());
     }
 
-
-    // Reusable tracking method
-    private void addTracking(Long appId, String status) {
+    // ── Internal helper ──────────────────────────────────────────────
+    private void addTrackingInternal(Long appId, String status, String message) {
         MachineTracking t = new MachineTracking();
         t.setApplicationId(appId);
         t.setStatus(status);
+        t.setMessage(message);
         t.setTimestamp(LocalDateTime.now());
         trackingRepo.save(t);
     }
 
-
-    // ADMIN: Get all applications
+    // ── Admin: all applications ───────────────────────────────────────
     public List<MachineApplication> getAllApplications() {
         return applicationRepo.findAll();
     }
 
-
-    // ADMIN: APPROVE
+    // ── Admin: approve ───────────────────────────────────────────────
     public MachineApplication approveApplication(Long appId) {
         MachineApplication app = applicationRepo.findById(appId)
                 .orElseThrow(() -> new RuntimeException("Not found"));
@@ -87,9 +80,8 @@ public class MachineService {
         app.setStatus("APPROVED");
         applicationRepo.save(app);
 
-        addTracking(appId, "Application Approved by Admin");
+        addTrackingInternal(appId, "Application Approved by Admin", "");
 
-        // 🔔 Notification
         notificationService.create(
                 app.getUserId(),
                 "Machine Application Approved",
@@ -99,8 +91,7 @@ public class MachineService {
         return app;
     }
 
-
-    // ADMIN: REJECT
+    // ── Admin: reject ────────────────────────────────────────────────
     public MachineApplication rejectApplication(Long appId, String reason) {
         MachineApplication app = applicationRepo.findById(appId)
                 .orElseThrow(() -> new RuntimeException("Not found"));
@@ -108,9 +99,8 @@ public class MachineService {
         app.setStatus("REJECTED");
         applicationRepo.save(app);
 
-        addTracking(appId, "Application Rejected: " + reason);
+        addTrackingInternal(appId, "Application Rejected: " + reason, reason);
 
-        // 🔔 Notification
         notificationService.create(
                 app.getUserId(),
                 "Machine Application Rejected",
@@ -120,34 +110,34 @@ public class MachineService {
         return app;
     }
 
-
-    // ADMIN: Add tracking update
+    // ── Admin: add tracking (status + message) ───────────────────────
     public MachineTracking addAdminTracking(Long appId, String status) {
+        return addAdminTrackingWithMessage(appId, status, "");
+    }
 
+    public MachineTracking addAdminTrackingWithMessage(Long appId, String status, String message) {
         MachineApplication app = applicationRepo.findById(appId)
                 .orElseThrow(() -> new RuntimeException("Not found"));
 
         MachineTracking t = new MachineTracking();
         t.setApplicationId(appId);
         t.setStatus(status);
+        t.setMessage(message != null ? message : "");
         t.setTimestamp(LocalDateTime.now());
         trackingRepo.save(t);
 
-        // 🔔 Notification
         notificationService.create(
                 app.getUserId(),
                 "Machine Application Update",
                 "New update on your application: " + status
+                        + (message != null && !message.isBlank() ? " – " + message : "")
         );
 
         return t;
-
     }
-    
+
     public MachineApplication getApplicationById(Long appId) {
         return applicationRepo.findById(appId)
                 .orElseThrow(() -> new RuntimeException("Application not found"));
     }
-
 }
-

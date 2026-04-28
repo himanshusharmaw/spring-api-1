@@ -8,6 +8,7 @@ C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\j
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\controller\AccountController.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\controller\AdminController.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\controller\AuthController.java
+C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\controller\EnrollmentController.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\controller\MachineAdminController.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\controller\MachineController.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\controller\NotificationController.java
@@ -15,6 +16,7 @@ C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\j
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\controller\UserController.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\controller\WalletController.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\model\Account.java
+C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\model\Enrollment.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\model\MachineApplication.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\model\MachineTracking.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\model\Notification.java
@@ -26,6 +28,7 @@ C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\j
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\payload\ProfileResponse.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\payload\TransactionResponse.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\repository\AccountRepository.java
+C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\repository\EnrollmentRepository.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\repository\MachineApplicationRepo.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\repository\MachineTrackingRepo.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\repository\NotificationRepository.java
@@ -36,6 +39,7 @@ C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\j
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\repository\WalletRepository.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\service\AccountService.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\service\CustomUserDetailsService.java
+C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\service\EnrollmentService.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\service\MachineService.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\service\NotificationService.java
 C:\Users\Lenovo\OneDrive\Pictures\PROJECT FINAL\Loan Services\Backend\src\main\java\com\aadhaarservices\aadhaar_services\service\PaymentService.java

@@ -14,31 +14,23 @@ public class MachineTracking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    public LocalDateTime getTimestamp() {
-		return timestamp;
-	}
-	public void setTimestamp(LocalDateTime timestamp) {
-		this.timestamp = timestamp;
-	}
-	public Long getId() {
-		return id;
-	}
-	public void setId(Long id) {
-		this.id = id;
-	}
-	public Long getApplicationId() {
-		return applicationId;
-	}
-	public void setApplicationId(Long applicationId) {
-		this.applicationId = applicationId;
-	}
-	public String getStatus() {
-		return status;
-	}
-	public void setStatus(String status) {
-		this.status = status;
-	}
-	private Long applicationId;
+    private Long applicationId;
     private String status;
+    private String message;   // ← NEW: custom admin message / note
     private LocalDateTime timestamp;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Long getApplicationId() { return applicationId; }
+    public void setApplicationId(Long applicationId) { this.applicationId = applicationId; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
+
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
 }

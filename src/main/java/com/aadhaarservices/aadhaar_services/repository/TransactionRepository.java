@@ -14,4 +14,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Transaction> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     List<Transaction> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+
+    // ← NEW: Admin – fetch all transactions of a given type (e.g. ADD_FUNDS)
+    List<Transaction> findByTypeOrderByCreatedAtDesc(String type);
+
+    // ← NEW: Admin – all transactions, newest first
+    List<Transaction> findAllByOrderByCreatedAtDesc();
 }

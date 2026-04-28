@@ -600,7 +600,7 @@ tr:hover td{background:var(--surface)44}
 // ════════════════════════════════════════════════════════════════
 // CONFIG — change BASE_URL to match your backend
 // ════════════════════════════════════════════════════════════════
-const BASE_URL = 'http://localhost:8082'; // ← Update to your deployed backend URL
+const BASE_URL = 'https://spring-api-1-lb07.onrender.com'; // ← Update to your deployed backend URL
 
 let token = localStorage.getItem('admin_token') || '';
 let allUsers = [];
@@ -763,7 +763,6 @@ function renderUsers(users) {
       <td style="white-space:nowrap">
         <button class="btn btn-blue btn-sm" onclick="openEditUser(${u.id})">Edit</button>
         <button class="btn btn-green btn-sm" onclick="openAddFund(${u.id},'${u.username}')">+Fund</button>
-        <button class="btn btn-red btn-sm" onclick="deleteUser(${u.id},'${u.username}')">Del</button>
       </td>
     </tr>`).join('');
 }
